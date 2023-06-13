@@ -6,16 +6,23 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Current File",
+            "name": "EventProducer",
             "request": "launch",
-            "mainClass": "${file}"
+            "mainClass": "com.harvicom.kafkastreams.eventproducers.EventProducer",
+            "projectName": "eventproducers"
         },
         {
             "type": "java",
             "name": "EventProducer",
             "request": "launch",
-            "mainClass": "com.harvicom.kafkastreams.EventProducer",
-            "projectName": "kafkastreams"
-        }
+            "mainClass": "com.harvicom.kafkastreams.processor.EventProducer",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
     ]
 }

@@ -1,4 +1,4 @@
-package com.harvicom.kafkastreams.processor;
+package com.harvicom.kafkastreams.eventproducers;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -31,7 +31,7 @@ public class EventProducer {
 
         logger.info("Creating Kafka Producer...");
         Properties props = new Properties();
-        String topicName="";
+        String topicName = "";
 
         try (InputStream input = new ClassPathResource("EventProducer.properties").getInputStream()) {
 
@@ -40,7 +40,7 @@ public class EventProducer {
             prop.load(input);
             props.put(ProducerConfig.CLIENT_ID_CONFIG, prop.getProperty("EventProducer.producerApplicationID"));
             props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, prop.getProperty("EventProducer.bootstrapServers"));
-            topicName=prop.getProperty("topicName");
+            topicName = prop.getProperty("topicName");
         } catch (IOException ex) {
             logger.error(ex.getMessage());
         }
@@ -55,37 +55,49 @@ public class EventProducer {
         ObjectReader oreader = omapper.reader();
         String outputLine = "";
 
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+        while (true) {
 
-		try {
-			//reader = new BufferedReader(new FileReader("SampleTransactions.txt"));
-            reader = new BufferedReader(new InputStreamReader(new ClassPathResource("SampleTransactions.txt").getInputStream()));
-			String line = reader.readLine();
+            String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
 
-            int i=1;
-            logger.info("Start sending messages...");
-			while (line != null) {
+            try {
+                // reader = new BufferedReader(new FileReader("SampleTransactions.txt"));
+                reader = new BufferedReader(
+                        new InputStreamReader(new ClassPathResource("SampleTransactions.txt").getInputStream()));
+                String line = reader.readLine();
 
-                JsonNode node = oreader.readTree(line);
-                ObjectNode objectNode = (ObjectNode) node;
-                objectNode.put("TRANASACTION_TIME",timeStamp);
-                outputLine=node.toString();
-                System.out.println(outputLine);
-                producer.send(new ProducerRecord<>(topicName, i,outputLine));
-				// read next line
-				line = reader.readLine();
-                i++;
-			}
+                int i = 1;
+                logger.info("Start sending messages...");
+                while (line != null) {
 
-			reader.close();
-		
-		} catch (JsonProcessingException jpe) {
-            logger.error(jpe.getMessage());
-        } catch (IOException ioe) {
-			logger.error(ioe.getMessage());
+                    JsonNode node = oreader.readTree(line);
+                    ObjectNode objectNode = (ObjectNode) node;
+                    objectNode.put("TRANASACTION_TIME", timeStamp);
+                    outputLine = node.toString();
+                    System.out.println(outputLine);
+                    producer.send(new ProducerRecord<>(topicName, i, outputLine));
+                    // read next line
+                    line = reader.readLine();
+                    i++;
+                }
+
+                reader.close();
+
+            } catch (JsonProcessingException jpe) {
+                logger.error(jpe.getMessage());
+            } catch (IOException ioe) {
+                logger.error(ioe.getMessage());
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
         }
 
-        logger.info("Finished - Closing Kafka Producer.");
-        producer.close();
+        //logger.info("Finished - Closing Kafka Producer.");
+        //producer.close();
     }
 }
